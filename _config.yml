@@ -3,12 +3,12 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: SmokingMouse
 subtitle:
 description:
 keywords:
-author: John Doe
-language:
+author: SmokingMouse
+language: zh-CN
 timezone:
 
 # URL
@@ -78,4 +78,6 @@ theme: landscape
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type:
+  type: git
+  repo: https://github.com/SmokingMouse/SmokingMouse.github.io.git
+  branch: master
