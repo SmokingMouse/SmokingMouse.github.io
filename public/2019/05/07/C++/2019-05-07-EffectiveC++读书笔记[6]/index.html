@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="C++,读书笔记,Effective C++,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="《Effective C++》读书笔记&amp;lt;六&amp;gt;Item 32：明确你的public继承塑模出is-a关系如果令class D以public方式继承class B，相当于告诉编译器，每个类型为D的对象同时也是一个类型为B的对象。你的意思是B比D表现出更为一般的概念，而D比B表现出更特殊化的概念。凡是B对象可以派上用场的地方，D对象一样可以排上用场 Item 33：避免遮掩继承而来的名称如果">
+<meta name="keywords" content="C++,读书笔记,Effective C++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++读书笔记&lt;六&gt;">
+<meta property="og:url" content="http://yoursite.com/2019/05/07/C++/2019-05-07-EffectiveC++读书笔记[6]/index.html">
+<meta property="og:site_name" content="SmokingMouse">
+<meta property="og:description" content="《Effective C++》读书笔记&amp;lt;六&amp;gt;Item 32：明确你的public继承塑模出is-a关系如果令class D以public方式继承class B，相当于告诉编译器，每个类型为D的对象同时也是一个类型为B的对象。你的意思是B比D表现出更为一般的概念，而D比B表现出更特殊化的概念。凡是B对象可以派上用场的地方，D对象一样可以排上用场 Item 33：避免遮掩继承而来的名称如果">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-05-07T09:23:31.915Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Effective C++读书笔记&lt;六&gt;">
+<meta name="twitter:description" content="《Effective C++》读书笔记&amp;lt;六&amp;gt;Item 32：明确你的public继承塑模出is-a关系如果令class D以public方式继承class B，相当于告诉编译器，每个类型为D的对象同时也是一个类型为B的对象。你的意思是B比D表现出更为一般的概念，而D比B表现出更特殊化的概念。凡是B对象可以派上用场的地方，D对象一样可以排上用场 Item 33：避免遮掩继承而来的名称如果">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/07/C++/2019-05-07-EffectiveC++读书笔记[6]/">
+
+
+
+
+
+  <title>Effective C++读书笔记<六> | SmokingMouse</六></title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmokingMouse</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/07/C++/2019-05-07-EffectiveC++读书笔记[6]/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SmokingMouse">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/images.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmokingMouse">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Effective C++读书笔记<六></六></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-07T00:00:00+08:00">
+                2019-05-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index">
+                    <span itemprop="name">C++</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="《Effective-C-》读书笔记-lt-六-gt"><a href="#《Effective-C-》读书笔记-lt-六-gt" class="headerlink" title="《Effective C++》读书笔记&lt;六&gt;"></a>《Effective C++》读书笔记&lt;六&gt;</h2><h4 id="Item-32：明确你的public继承塑模出is-a关系"><a href="#Item-32：明确你的public继承塑模出is-a关系" class="headerlink" title="Item 32：明确你的public继承塑模出is-a关系"></a>Item 32：明确你的public继承塑模出is-a关系</h4><p>如果令class D以public方式继承class B，相当于告诉编译器，每个类型为D的对象同时也是一个类型为B的对象。你的意思是B比D表现出更为一般的概念，而D比B表现出更特殊化的概念。<b>凡是B对象可以派上用场的地方，D对象一样可以排上用场</b></p>
+<h4 id="Item-33：避免遮掩继承而来的名称"><a href="#Item-33：避免遮掩继承而来的名称" class="headerlink" title="Item 33：避免遮掩继承而来的名称"></a>Item 33：避免遮掩继承而来的名称</h4><p>如果你在使用public继承，但是却不继承base的函数，便是对<b>is-a</b>关系的违反。</p>
+<p>倘若你在子类D中定义了从B中继承而来的同名函数，那么从<b>名称查找</b>的观念来看，B中的函数便不再被继承。你在D中定义的函数遮掩了继承的函数。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f2</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f3</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f3</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span>:</span><span class="keyword">public</span> B&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">()</span></span>;<span class="comment">//override f1(), but hide f1(int). </span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f3</span><span class="params">()</span></span>;<span class="comment">//hide f3().</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f4</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>你可以使用using声明解决问题</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span>:</span><span class="keyword">public</span> B&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">using</span> B::f1;</span><br><span class="line">    <span class="keyword">using</span> B::f3;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">()</span></span>; </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f3</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f4</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">D d;</span><br><span class="line">d.f1(); <span class="comment">// D::f1.</span></span><br><span class="line">d.f1(<span class="number">1</span>); <span class="comment">// B::f1.</span></span><br><span class="line">d.f2(); <span class="comment">// B::f2.</span></span><br><span class="line">d.f3(); <span class="comment">// D::f3.</span></span><br><span class="line">d.f3(<span class="number">1</span>); <span class="comment">// B::f3.</span></span><br></pre></td></tr></table></figure>
+<p>值得注意的是，<b>using的意思与字面有区别，不是说接下来的调用都是使用这个using指明的范围，而是说让using指明的名字在当前作用域可见。</b></p>
+<p>有时候不想继承基类所有的函数，而是说只想继承一部分。当然这对于public继承是不可能的，但是对于private继承有时候可能会有这种需求。这个时候使用using会暴露父类所有该名函数，我们需要不同的技术，叫做<b>转交函数</b>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derived</span>:</span> <span class="keyword">private</span> Base&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f1</span><span class="params">()</span></span>&#123;<span class="comment">//转交函数，遮掩父类所有f1函数</span></span><br><span class="line">        Base::f1();<span class="comment">//暗自成为inline.</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">D d;</span><br><span class="line">d.f1();<span class="comment">// 调用D::f1()-&gt;B::f1().</span></span><br><span class="line">d.f1(<span class="number">1</span>);<span class="comment">// 错误.</span></span><br></pre></td></tr></table></figure>
+<h4 id="Item-34：区分接口继承和实现继承"><a href="#Item-34：区分接口继承和实现继承" class="headerlink" title="Item 34：区分接口继承和实现继承"></a>Item 34：区分接口继承和实现继承</h4><p>身为class设计者，有时你会希望derived classes只继承成员函数的接口；有时你又会希望derived class同时继承函数的接口和实现，但又能override它们所继承的实现；有时你希望derived classes同时继承函数的接口和实现，并且不允许覆写任何东西。</p>
+<ul>
+<li>成员函数总是会被继承。public继承意味着is-a的关系，父类所有的函数在子类上都能施行。</li>
+<li>pure函数是为了让derived classes只继承函数接口。(我们可以为纯虚函数提供定义，但是意义不大)</li>
+<li>声明impure virtual函数是为了让derived classes继承该函数的接口和缺省实现。它表示每个子类都必须支持这样一个函数，如果不想写，可使用缺省版本。</li>
+<li>声明non-virtual函数目的是为了令derived classes继承一份接口和一份将强制性实现。</li>
+</ul>
+<h4 id="Item-35：考虑virtual函数以外的其他选择"><a href="#Item-35：考虑virtual函数以外的其他选择" class="headerlink" title="Item 35：考虑virtual函数以外的其他选择"></a>Item 35：考虑virtual函数以外的其他选择</h4><p>假设我们现在写一款游戏，不同角色攻击时会释放不同的技能，可能我们会想到使用virtual函数，让特殊角色都继承于GameCharacter，GameCharacter提供了一份缺省实现，特殊角色可针对自己的情况改写攻击函数。</p>
+<p>当然这也是我们最常规的办法，除此之外，也存在着许多其他的方式供我们选择。</p>
+<ul>
+<li><b>Non-Virtual Interface的手法实现Template Method模式</b></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GameCharacter</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">attack</span><span class="params">()</span></span>&#123;</span><br><span class="line">        beforeAttack();</span><br><span class="line">        doAttack();</span><br><span class="line">        afterAttack();</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">doAttack</span><span class="params">()</span></span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这就是所谓的NVI手法，attack是作为doAttack的外覆器。</p>
+<p>NVI的优势在于我们可以在进行实际操作前后做些处理，正如我们beforeAttack()，afterAttack()写的那样。</p>
+<ul>
+<li><b>基于Function Pointers实现的Strategy模式</b></li>
+</ul>
+<p>我们可以让不同角色保存一个函数指针，该函数指针执行特殊攻击操作。但是这样存在一个问题，就是函数指针指向的函数可能需要访问对象的私有元素，这样可能就需要采用friend关键字来为函数特殊访问权限。</p>
+<ul>
+<li><b>基于std::function实现的Strategy模式</b></li>
+</ul>
+<p>与上面的Function Pointers相似，只不过<i>std::function</i>具有更好的封装，可以保存成员函数。</p>
+<ul>
+<li><b>传统的Strategy模式</b></li>
+</ul>
+<p>让不同操作封装在不同类里，并形成继承链，在不同角色中保存有这些操作的对象，并在角色的攻击函数中调用操作对象的接口。</p>
+<p>这里只是介绍传统的Strategy模式，在这个例子里面意义不大。</p>
+<h4 id="Item-36：绝不重新定义继承而来的non-virtual函数"><a href="#Item-36：绝不重新定义继承而来的non-virtual函数" class="headerlink" title="Item 36：绝不重新定义继承而来的non-virtual函数"></a>Item 36：绝不重新定义继承而来的non-virtual函数</h4><p>因为这个时候对于一个D对象，通过B指针访问该函数和通过D指针访问该函数的表现不再相同。也就是说用到D指针的地方不能用B指针替代，也就是违背了public继承is-a的关系。</p>
+<p>很显然，父类的non-virtual函数体现了某种<b>不变性</b>，一旦子类改变定义，便是对is-a关系的违反。如果希望子类对某些函数表现出特异性，这时就需要virtual关键字，virtual函数通过虚函数表的机制，向子类提供了一种保证：你可以大可以重新定义我，我将仍然维护is-a关系。因为D对象不论是通过D指针还是通过B指针访问，表现都是相同的。</p>
+<h4 id="Item-37：绝不重新定义继承而来的缺省参数值"><a href="#Item-37：绝不重新定义继承而来的缺省参数值" class="headerlink" title="Item 37：绝不重新定义继承而来的缺省参数值"></a>Item 37：绝不重新定义继承而来的缺省参数值</h4><p>virtual函数是动态绑定的，而缺省参数值确实静态绑定的。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span> i = <span class="number">0</span>)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span>:</span><span class="keyword">public</span> A&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span> i = <span class="number">1</span>)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line">A* a = <span class="keyword">new</span> B();</span><br><span class="line">a-&gt;f();<span class="comment">//我们可能期待参数为1，但实际上是0</span></span><br></pre></td></tr></table></figure>
+<p>在上面的例子里面，我们重新定义了继承而来的缺省参数值，但通过指针或引用来访问时，由于缺省参数值是静态绑定的，a的静态类型是A，所以我们绑定了缺省参数值0，在运行时才调用到B::f()，这就很容易造成误解，所以最好的做法是不要重新定义继承而来的缺省参数值。</p>
+<p>之所以让绑定缺省参数在编译器进行，是为了降低运行期的开销。</p>
+<h4 id="Item-38：通过复合塑模出has-a或is-implemented-in-terms-of"><a href="#Item-38：通过复合塑模出has-a或is-implemented-in-terms-of" class="headerlink" title="Item 38：通过复合塑模出has-a或is-implemented-in-terms-of"></a>Item 38：通过复合塑模出has-a或is-implemented-in-terms-of</h4><p>复合有两个意义。复合意味<i>has-a</i>或<i>is-implemented-in-terms-of</i>。程序中的对象其实相当于你所塑造的世界中的某些事物，例如人、汽车、视频画面等等。这样的对象属于<b>应用域部分</b>。其他对象则纯粹是实现细节上的人工制品，像是缓冲区、互斥器、查找树等等。这些对象属于<b>实现域部分</b>。复合发生于应用域内对象之间，表现出<i>has-a</i>关系，当发生于实现域内则是表现<i>is-implemented-in-terms-of</i>关系。</p>
+<h4 id="Item-39：明智而谨慎地使用private继承"><a href="#Item-39：明智而谨慎地使用private继承" class="headerlink" title="Item 39：明智而谨慎地使用private继承"></a>Item 39：明智而谨慎地使用private继承</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>&#123;</span>&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span>:</span><span class="keyword">private</span> Person&#123;&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eat</span><span class="params">(<span class="keyword">const</span> Person&amp;)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">study</span><span class="params">(<span class="keyword">const</span> Student&amp;)</span></span>;</span><br><span class="line"></span><br><span class="line">Person p;</span><br><span class="line">Student s;</span><br><span class="line">eat(p);<span class="comment">//正确</span></span><br><span class="line">eat(s);<span class="comment">//错误，没有is-a关系</span></span><br></pre></td></tr></table></figure>
+<p>private继承意味着implemented-in-terms-of。如果让D以private形式继承B，用意是采用B中已经备妥的某些特性，不是因为B和D有任何观念上的关系。</p>
+<p>private继承与复合有点相似，我们在两者间的取舍可总结为：尽可能使用复合，必要时才使用private继承。private继承主要用于<b>“一个意欲成为derived class者像访问一个意欲成为base class者的protected成分，或为了重新定义一或多个virtual函数”。</b></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*private继承*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Timer</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">Timer</span><span class="params">(<span class="keyword">int</span> tickFrequency)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">onTick</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Widget</span>:</span> <span class="keyword">private</span> Timer&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">onTick</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">&#125;<span class="comment">//Widget可以调用onTick().</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*普通复合*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Widget</span>&#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">WidgetTimer</span>:</span><span class="keyword">public</span> Timer&#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">onTick</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">    &#125;;<span class="comment">//定义于Widget内部,让其他类无法继承WidgetTimer。</span></span><br><span class="line">    WidgetTimer timer;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>另外在一种激进情况涉及空间最优化，可能促使你选择”private继承”而不是”继承加复合”。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Empty</span>&#123;</span>&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HoldAnInt</span>&#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> x;</span><br><span class="line">    Empty e;</span><br><span class="line">&#125;;<span class="comment">//sizeof(HoldAnInt) &gt; sizeof(int)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//独立对象大小不为零。</span></span><br><span class="line"><span class="comment">//sizeoff(Empty) == 1.编译器默默安插一个char到空对象里，虽然char不算大，但在复合关系里，可能存在对齐问题，导致额外的padding开销。</span></span><br></pre></td></tr></table></figure>
+<p>我们提到了独立对象不为零，如果该对象是作为另一对象的附带情况就会不一样了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HoldAnInt</span>:</span><span class="keyword">private</span> Empty&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> x;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//这个时候sizeof(HoldAnInt) == sizeof(int)</span></span><br></pre></td></tr></table></figure>
+<p>这就是所谓的<b>EBO优化(empty base optimization)</b></p>
+<h4 id="Item-40：明智而谨慎的选择多继承"><a href="#Item-40：明智而谨慎的选择多继承" class="headerlink" title="Item 40：明智而谨慎的选择多继承"></a>Item 40：明智而谨慎的选择多继承</h4><ul>
+<li>多重继承比单一继承复杂。可能导致歧义性，以及对virtual继承的需要。</li>
+<li>virtual继承会增加大小、速度、初始化复杂度等等成本。如果virtual base classes不带任何数据，将是最有使用价值的情况。</li>
+<li>多重继承有正当用途。其中一个情节涉及”public继承某个Interface class”和“private继承某个协助实现的class“两相组合</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/C/" rel="tag"># C++</a>
+          
+            <a href="/tags/读书笔记/" rel="tag"># 读书笔记</a>
+          
+            <a href="/tags/Effective-C/" rel="tag"># Effective C++</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/15/算法/2019-04-19-中缀转后缀算法/" rel="next" title="中缀转后缀算法">
+                <i class="fa fa-chevron-left"></i> 中缀转后缀算法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/images.jpg" alt="SmokingMouse">
+            
+              <p class="site-author-name" itemprop="name">SmokingMouse</p>
+              <p class="site-description motion-element" itemprop="description">stay hungry, stay foolish</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/SmokingMouse" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/_BigM" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#《Effective-C-》读书笔记-lt-六-gt"><span class="nav-number">1.</span> <span class="nav-text">《Effective C++》读书笔记&lt;六&gt;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-32：明确你的public继承塑模出is-a关系"><span class="nav-number">1.0.1.</span> <span class="nav-text">Item 32：明确你的public继承塑模出is-a关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-33：避免遮掩继承而来的名称"><span class="nav-number">1.0.2.</span> <span class="nav-text">Item 33：避免遮掩继承而来的名称</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-34：区分接口继承和实现继承"><span class="nav-number">1.0.3.</span> <span class="nav-text">Item 34：区分接口继承和实现继承</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-35：考虑virtual函数以外的其他选择"><span class="nav-number">1.0.4.</span> <span class="nav-text">Item 35：考虑virtual函数以外的其他选择</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-36：绝不重新定义继承而来的non-virtual函数"><span class="nav-number">1.0.5.</span> <span class="nav-text">Item 36：绝不重新定义继承而来的non-virtual函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-37：绝不重新定义继承而来的缺省参数值"><span class="nav-number">1.0.6.</span> <span class="nav-text">Item 37：绝不重新定义继承而来的缺省参数值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-38：通过复合塑模出has-a或is-implemented-in-terms-of"><span class="nav-number">1.0.7.</span> <span class="nav-text">Item 38：通过复合塑模出has-a或is-implemented-in-terms-of</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-39：明智而谨慎地使用private继承"><span class="nav-number">1.0.8.</span> <span class="nav-text">Item 39：明智而谨慎地使用private继承</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Item-40：明智而谨慎的选择多继承"><span class="nav-number">1.0.9.</span> <span class="nav-text">Item 40：明智而谨慎的选择多继承</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SmokingMouse</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

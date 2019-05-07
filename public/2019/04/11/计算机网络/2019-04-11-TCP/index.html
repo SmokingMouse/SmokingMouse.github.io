@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="计算机网络,TCP,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="TCP总结MSSThe maximum segment size is the largest “chunk” of data that TCP will send to the other end.  当连接建立起来后，每一端都能通知对端自己的MSS，让对面每次发送的Segment不要太大以至于被分片。An MSS option can only appear in a SYN segment.">
+<meta name="keywords" content="计算机网络,TCP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP总结">
+<meta property="og:url" content="http://yoursite.com/2019/04/11/计算机网络/2019-04-11-TCP/index.html">
+<meta property="og:site_name" content="SmokingMouse">
+<meta property="og:description" content="TCP总结MSSThe maximum segment size is the largest “chunk” of data that TCP will send to the other end.  当连接建立起来后，每一端都能通知对端自己的MSS，让对面每次发送的Segment不要太大以至于被分片。An MSS option can only appear in a SYN segment.">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/o_state_transition_diagram.jpg">
+<meta property="og:image" content="http://yoursite.com/images/slide_window.jpg">
+<meta property="og:updated_time" content="2019-04-19T02:10:44.644Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP总结">
+<meta name="twitter:description" content="TCP总结MSSThe maximum segment size is the largest “chunk” of data that TCP will send to the other end.  当连接建立起来后，每一端都能通知对端自己的MSS，让对面每次发送的Segment不要太大以至于被分片。An MSS option can only appear in a SYN segment.">
+<meta name="twitter:image" content="http://yoursite.com/images/o_state_transition_diagram.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/11/计算机网络/2019-04-11-TCP/">
+
+
+
+
+
+  <title>TCP总结 | SmokingMouse</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmokingMouse</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/计算机网络/2019-04-11-TCP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SmokingMouse">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/images.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmokingMouse">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T00:00:00+08:00">
+                2019-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/计算机网络/" itemprop="url" rel="index">
+                    <span itemprop="name">计算机网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="TCP总结"><a href="#TCP总结" class="headerlink" title="TCP总结"></a>TCP总结</h1><h3 id="MSS"><a href="#MSS" class="headerlink" title="MSS"></a>MSS</h3><p>The maximum segment size is the largest “chunk” of data that TCP will send to the other end. </p>
+<p>当连接建立起来后，每一端都能通知对端自己的MSS，让对面每次发送的Segment不要太大以至于被分片。<b>An MSS option can only appear in a SYN segment.</b>如果没有收到对面给的MSS信息，那么默认为536.（每个主机都必须能接受小于576的数据报）</p>
+<p>我们可以知道的是，MSS的大小往往大一点是更好的，因为可以减少IP和TCP包头的开销。MSS往往设置为网卡出口的MTU-40。在发送数据时，我们不仅要考量对端的MSS，我们考虑网卡出口的MTU。我们选择合适的MSS是为了在避免分片的情况下尽量选择更大的一次性数据发送量，但是分片极有可能在路径中间的瓶颈处进行。也就是说双方提示给对面的MSS都很大，但是中间有个路由器不够争气。（解决这种情况的方法是使用path MTU discovery）</p>
+<h3 id="Half-Close"><a href="#Half-Close" class="headerlink" title="Half-Close"></a>Half-Close</h3><p>由于TCP是全双工的，双方都能发送接收数据，所以存在两条数据流，是否中断那条数据流是由发送方决定的。也就是说，A能关闭它作为发送方的数据流，但仍然可以选择在另一条数据流上读取数据。在关闭一条数据流后的状态就是处于Half-Close。注意，在使用Unix Api <i>close</i>关闭套接字，这不是进入半关闭状态，因为这会同时关闭读和写。</p>
+<h3 id="TCP-State-Transition-Diagram"><a href="#TCP-State-Transition-Diagram" class="headerlink" title="TCP State Transition Diagram"></a>TCP State Transition Diagram</h3><p><img src="/images/o_state_transition_diagram.jpg" alt></p>
+<h3 id="2MSL-Wait-State"><a href="#2MSL-Wait-State" class="headerlink" title="2MSL Wait State"></a>2MSL Wait State</h3><p>如上图所示，TIME_WAIT也叫做2MSL状态。TCP的每种实现都必须设定一个值叫做<i>maximum segment lifetime</i>。它代表着一个Segment 被丢弃前在网络中能存在的最长时间。</p>
+<p>TIME_WAIT存在处于两个目的：</p>
+<ul>
+<li>我们假设客户端作为主动关闭方，那么客户最后发送的对Fin的Ack是可能会丢失的。但是这个信息对于服务器又是关键的，不收到它会以为你还在那边听，只是我的关闭信息没发过去。倘若客户没有进入TIME_WAIT状态，只会让服务端陷入无限的自责，一直以为是自己的问题。</li>
+<li>在处于2MSL阶段时，这个连接的socket pair不能被重用，直到2MSL阶段结束。大多数的实现给了一个更严格的要求，处于TIME_WAIT的一端的Socket port都不能被重用，而不只是那对socket pair。在这个阶段收到的数据包都会被丢弃，等待2MSL可以让之前连接的数据包消失殆尽，不至于影响后续的连接。</li>
+</ul>
+<p>疑问：为什么滞后的数据包只影响主动关闭方，不影响被动关闭方？</p>
+<p>任何主动关闭方试图在关闭后立刻重启并绑定相同port的都会出问题。这个问题在客户端可能影响不大，但是对于服务器的影响确实巨大的。因为服务器的端口是众所周知的，试想需要等待1-4分钟才能重启服务器的影响（</p>
+<p>我们可以给套接字加上SO_REUSEADDR选项，让其可以绑定处于TIME_WAIT阶段端口，但即使这样，如果我们试图连接相同的服务器，还是无法连接，因为那个socket对处于2MSL阶段。但是如果是服务器主动关闭，这却可以实现。：）</p>
+<h3 id="Half-Open"><a href="#Half-Open" class="headerlink" title="Half-Open"></a>Half-Open</h3><p><b>A TCP connection is said to be half-open if one end has closed or aborted the connection without the knowledge of the other end.</b></p>
+<p>没有办法在半开状态传送数据，也没有办法察觉。常见的原因可能是突然断掉电源。</p>
+<h3 id="Simultaneous-Open"><a href="#Simultaneous-Open" class="headerlink" title="Simultaneous Open"></a>Simultaneous Open</h3><p><b>TCP was purposely designed to handle simultaneous opens and the rule is that only one connection results from this, not two connections.</b></p>
+<p>同时打开需要交换4条Segments，两端都扮演着客户端和服务端。</p>
+<p>疑问：（这种同时打开的意义在哪？还有，是不是必须得创建监听套接字）</p>
+<h3 id="Delayed-Acknowledgments"><a href="#Delayed-Acknowledgments" class="headerlink" title="Delayed Acknowledgments"></a>Delayed Acknowledgments</h3><p>当TCP连接用于交互式数据传输时，每次传输的数据可能会很少。为了减少包头的开销以及减少链路上的数据包的数目，通过采取一种叫做延迟确认的技术。这种技术是说，在收到数据包后，不立即确认，而是先等待一阵子，看看有没有要发的数据，把数据和确认号一起发过去。大多数实现采用200ms的延迟。</p>
+<p>TCP的计时往往是基于心跳的，它不是说一定得准确计时200ms后再发送。就好比一个闹钟，它每隔一段时间滴答一下，用以大致估计时间。闹钟的时间是在流逝的，但我不关注，我关注的只是心跳。比方说我关心200ms的心跳，那么我收到数据时可能离上次心跳刚过去0-199ms这都不能确定，所以我的延迟不是准确的200ms，而是到下一次的心跳发生的间隔。</p>
+<h3 id="Nagle-Algorithm"><a href="#Nagle-Algorithm" class="headerlink" title="Nagle Algorithm"></a>Nagle Algorithm</h3><p>这个算法意思是说不会有数据就传，而是等之前的数据的Ack确认号收到后再传，在此之前可以将数据收集起来。这个算法用于交互式的小数据传输，可以节省数据包头并且减少网络中包的数量。</p>
+<p>这个算法是自适应的，Nagle算法是为了减少小的数据包的数量，降低网络中的通信压力，当信路通畅时，它发的也快，当信路状况不好时，它也可以通过减少包的数量，降低发送速率来缓解线路压力。</p>
+<p>有时候我们需要关闭Nagle算法，比方说我们的信息交互是即时的，对延迟比较敏感。另外，假如我们键入指令让远程执行，如果TCP拿到一个字节数据发给服务端，服务端靠这一个字节的数据无法产生应答，直到Delayed（200ms）时间到了，才将Ack返回。这也就是说，至少要等200ms，才能让后续的字节发过去，造成了明显的延迟。</p>
+<h3 id="Sliding-Windows"><a href="#Sliding-Windows" class="headerlink" title="Sliding Windows"></a>Sliding Windows</h3><p>滑动窗口是为了控制两端的流量，在两端发送和接受速率存在很大差别时，不至于让大量的数据无意义的传输。</p>
+<p><b>The window advertised by receiver is called the offered window.</b></p>
+<p><img src="/images/slide_window.jpg" alt></p>
+<p>窗口移动有如下三种情况：</p>
+<ul>
+<li>发送方的消息被确认时，发送窗口的左端右移。</li>
+<li>当接受方的接收窗口数据被进程读取后，腾出空间，这时发送方的发送窗口右端右移。</li>
+<li>发送窗口的右端左移（RFC是禁止的，但是TCP必须能与这样行为的对端成功合作）</li>
+</ul>
+<p>窗口的大小往往是由进程确定的。</p>
+<h3 id="PUSH-Flag"><a href="#PUSH-Flag" class="headerlink" title="PUSH Flag"></a>PUSH Flag</h3><p>PUSH Flag是一个信号，用来告诉接受方，你把数据尽快递给进程，不要让数据在TCP的buffer里逗留等待额外的数据。接受方收到PUSH后，它就会知道，不需要等待额外的数据了。</p>
+<p>现在往往没有Api去设置这个信号位，如果在数据发送后缓冲清空了的话，大多数伯克利衍生的实现会自动的加上这个标志。</p>
+<h3 id="Bulk-Data-Throughput（不太懂）"><a href="#Bulk-Data-Throughput（不太懂）" class="headerlink" title="Bulk Data Throughput（不太懂）"></a>Bulk Data Throughput（不太懂）</h3><h3 id="TCP重传"><a href="#TCP重传" class="headerlink" title="TCP重传"></a>TCP重传</h3><p>TCP的重传计时是以连接的RTT为基础的，而RTT又是随着时间会发生变动的，所以我们需要对RTT有一定的测量方案，并尽量反应网络状况。</p>
+<p>第一个算法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">R&lt;-αR + (1-α)M</span><br><span class="line">RTO = Rβ</span><br></pre></td></tr></table></figure>
+<p>其中α代表着平滑因子，一般选取0.9，而β一般选取2.RTO为计算得到的超时重传时间。</p>
+<p>这个方法看上去不错，但是有一个问题，它无法反映RTT的急剧变化。比方说RTT突然增大，但是RTO不能反映这种剧烈变化，造成的影响是RTO比理论偏小，造成了不必要的重传。</p>
+<p>Jacobson提出了另外的一种算法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Err = M - A</span><br><span class="line">A &lt;- A + gErr</span><br><span class="line">D &lt;- D + h(|Err| - D)</span><br><span class="line">RTO = A + 4D</span><br></pre></td></tr></table></figure>
+<p>g，h一般分别取0.125，0.25.</p>
+<p>D便是测定的平均变化程度，这种算法便考虑了剧烈变化的影响。</p>
+<p><strong>关于RTT的测量需要注意一些问题</strong></p>
+<ul>
+<li>如果一个报文段准备发送时，而此时timer正在被使用，那么这个报文段不计入RTT的测量。</li>
+<li>RTT的计时是基于500ms-timer，也就是说550ms的发出到收到ACK时间间隔，可能被计入1tick或2ticks，分别代表500ms和1000ms。</li>
+<li>重传的报文段不计入RTT的测量，因为不知道这个回应是针对哪个报文段。依据<i>Karn’s Algorithm</i>，我们将重新使用加倍后的RTO。</li>
+</ul>
+<p>具体的例子参考《TCP/IP详解 Vol1》p304</p>
+<h3 id="拥塞避免"><a href="#拥塞避免" class="headerlink" title="拥塞避免"></a>拥塞避免</h3><h4 id="Slow-Start"><a href="#Slow-Start" class="headerlink" title="Slow Start"></a>Slow Start</h4><p>在发送方存在另外一个窗口，叫做<i>拥塞窗口</i>，用来模拟当前的网络状况。拥塞窗口初始值为一个Segment，每次收到一个ACK，拥塞窗口便增加一个Segment。每次发送方能够发送advertise window和拥塞窗口中的更小值量的数据。也就是说，我开始只能发一个Segment，但当我收到ACK后，我就能发两个了。当发送的两个都收到以后，我就能发四个。意思就是每收到一个ACK，就能让我能发送的个数增加1.</p>
+<p>拥塞避免和Slow Start是不同的算法，当拥塞发生时，我们需要减缓发送速率，需要使用拥塞避免算法和Slow Start的结合。需要维护两个变量：</p>
+<ul>
+<li>拥塞窗口（congestion window，<i>cwnd</i>）</li>
+<li>慢启动门槛（slow start threshold size， <i>ssthresh</i>）</li>
+</ul>
+<p>算法具体操作如下：</p>
+<ol>
+<li><p>将<i>cwnd</i>初始化为1个Segment，<i>ssthresh</i>初始化为65535个字节。</p>
+</li>
+<li><p>TCP不会发送大于<i>cwnd</i>和advertised window中更小者的数据量。</p>
+</li>
+<li><p>当拥塞发生后（超时或连续收到3个相同的ACK），<strong>将<i>ssthresh</i>设置为当前窗口的一半（<i>cwnd</i>和advertised window的更小者，但至少是2个Segment）</strong>，如果拥塞发生的原因是超时，那么<i>cwnd</i>设置为1个segment。</p>
+</li>
+<li><p>当新的数据被ACK后，我们需要增加<i>cwnd</i>，但增加的方式取决于我们在进行慢启动还是拥塞避免。</p>
+<p>如果<i>cwnd</i>小于等于<i>ssthresh</i>，我们做慢启动，不然我们就是处于拥塞避免阶段。Slow Start到我们拥塞发生的地方，然后拥塞避免就开始了。</p>
+<p>Slow Start的<i>cwnd</i>刚开始是1个Segment，每次收到收到一个ACK就会增加1.增长的速率是指数倍的，1，2，4…这也就是为什么拥塞发生时，<i>ssthresh</i>要减少至一半。拥塞避免阶段，每次收到一个ACK，增加1/<i>cwnd</i>。</p>
+<p>我们在这里提到增长以段为单元，实际上是按照字节来的。</p>
+</li>
+</ol>
+<h4 id="Fast-Retransmit-and-Fast-Recovery"><a href="#Fast-Retransmit-and-Fast-Recovery" class="headerlink" title="Fast Retransmit and Fast Recovery"></a>Fast Retransmit and Fast Recovery</h4><p>有时不用等到超时我们就能判断丢包，当我们连续收到3个或以上相同的ACK，我们便可以知道极大可能是发生了丢包。这叫做<b>快重传</b>。另外，正如在上面提到的，不会开始慢启动，而是采取叫做快恢复的方式。之所以采用快恢复是因为我们注意到还是收到了3个ACK，说明当前的网络状况不算太糟糕。没必要启用慢启动。</p>
+<p>算法的步骤大致如下：</p>
+<ul>
+<li><p>当收到重复的ACK后，设置<i>ssthresh</i>为窗口的一半。（<i>cwnd</i>和advertised window的更小者，至少是2个Segment）</p>
+<p>重传丢失的Segment，设置<i>cwnd</i>为<i>ssthresh</i>+3个Segment大小。</p>
+</li>
+<li><p>每次收到重复的ACK，将<i>cwnd</i>增加一个Segment大小，然后重传一个包。</p>
+</li>
+<li><p>当下一个对新数据的ACK到达后，将<i>cwnd</i>设置为<i>ssthresh</i>。</p>
+</li>
+</ul>
+<p>具体的计算实例参考《TCP/IP详解 Vol1》p314</p>
+<h3 id="TCP-Persist-Timer"><a href="#TCP-Persist-Timer" class="headerlink" title="TCP Persist Timer"></a>TCP Persist Timer</h3><p>假设我们有A，B双方通信，A准备给B发送消息，无奈B的接收窗口一直为0。后来B腾出了空间，将这个信息告诉A，可惜这个信息还丢了。因为这个信息不存在重传，所以导致了一个A想给B发信息发不了，B在等A信息的局面。</p>
+<p>这时就需要使用使用Persist Timer，当A收到B的通告说接收窗口为0时，A会设置一个Persist Timer，一旦过了这个时间还没有B窗口能用的信息，它就怀疑是ACK丢了，于是它发送一个window probe，询问信息。如果ACK没丢，只是单纯的没地方，那么B的回复就重置Persist Timer，并且时间翻倍。</p>
+<h4 id="糊涂窗口症状"><a href="#糊涂窗口症状" class="headerlink" title="糊涂窗口症状"></a>糊涂窗口症状</h4><p>所谓的糊涂窗口症状是说，总是小的数据在传递，而不是一个满的数据段。</p>
+<p>它的发生可能是两端的原因：接受方通告了太小的接收窗口（而不是等窗口大一点后再通告）；或者发送方发送少量数据，而不是等到积累一定数据量后一起发。为避免糊涂窗口症状，两端都在为此付出努力。</p>
+<ul>
+<li>接受方禁止通告小窗口，一般的算法是，等到可接收窗口的大小到了min（Segment，buffer space / 2）再做通告</li>
+<li>发送方只有再满足如下条件才传输数据：<ul>
+<li>Segment数据能够传送。</li>
+<li>能传送对端advertise过的最大窗口的一半的数据。</li>
+<li>我们能发送任何已有数据，要么我们开启了Nagle算法但不存在未确认数据了，要么禁止了Nagle算法。</li>
+</ul>
+</li>
+</ul>
+<p>这里就有可能发生一种情况，B给A通告的窗口大于一个Segment，A发送的数据为一个Segment，此时B的窗口不足以通告，但是必须通告，并且这个值不能为0，不然A的发送窗口就出现了右端左移的情况。</p>
+<p>具体的例子参考《TCP/IP详解 Vol1》p329</p>
+<h3 id="TCP-Keepalive-Timer"><a href="#TCP-Keepalive-Timer" class="headerlink" title="TCP Keepalive Timer"></a>TCP Keepalive Timer</h3><p>通常设置keepalive选项的是服务器，为了判断当前是否是half open状态。</p>
+<p>如果当前连接已经两个小时没有互动了，服务器就会发送一个Probe Segment到客户端，客户可能处于以下几种状态：</p>
+<ul>
+<li>运行并可达，这时客户端会响应服务端，让它知道自己一切都好，然后服务端重新设置keepalive timer为2个小时。</li>
+<li>宕机，服务器收不到回复，并且在75秒后超时。服务器一共会发10个，分隔75秒，如果一个回复都收不到，服务器都会猜测客户端已经宕机，随机关闭连接。</li>
+<li>宕机又重启，这时客户端收到Probe，因为刚重启，会相应一个Reset，导致服务端终止连接。</li>
+<li>运行不可达，这种情况类似第二种，TCP不能辨别。</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/计算机网络/" rel="tag"># 计算机网络</a>
+          
+            <a href="/tags/TCP/" rel="tag"># TCP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/10/C++/2019-04-10-C++虚函数/" rel="next" title="C++对象模型总结">
+                <i class="fa fa-chevron-left"></i> C++对象模型总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/15/算法/2019-04-19-中缀转后缀算法/" rel="prev" title="中缀转后缀算法">
+                中缀转后缀算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/images.jpg" alt="SmokingMouse">
+            
+              <p class="site-author-name" itemprop="name">SmokingMouse</p>
+              <p class="site-description motion-element" itemprop="description">stay hungry, stay foolish</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/SmokingMouse" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/_BigM" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP总结"><span class="nav-number">1.</span> <span class="nav-text">TCP总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MSS"><span class="nav-number">1.0.1.</span> <span class="nav-text">MSS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Half-Close"><span class="nav-number">1.0.2.</span> <span class="nav-text">Half-Close</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP-State-Transition-Diagram"><span class="nav-number">1.0.3.</span> <span class="nav-text">TCP State Transition Diagram</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2MSL-Wait-State"><span class="nav-number">1.0.4.</span> <span class="nav-text">2MSL Wait State</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Half-Open"><span class="nav-number">1.0.5.</span> <span class="nav-text">Half-Open</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Simultaneous-Open"><span class="nav-number">1.0.6.</span> <span class="nav-text">Simultaneous Open</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Delayed-Acknowledgments"><span class="nav-number">1.0.7.</span> <span class="nav-text">Delayed Acknowledgments</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nagle-Algorithm"><span class="nav-number">1.0.8.</span> <span class="nav-text">Nagle Algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sliding-Windows"><span class="nav-number">1.0.9.</span> <span class="nav-text">Sliding Windows</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PUSH-Flag"><span class="nav-number">1.0.10.</span> <span class="nav-text">PUSH Flag</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bulk-Data-Throughput（不太懂）"><span class="nav-number">1.0.11.</span> <span class="nav-text">Bulk Data Throughput（不太懂）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP重传"><span class="nav-number">1.0.12.</span> <span class="nav-text">TCP重传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拥塞避免"><span class="nav-number">1.0.13.</span> <span class="nav-text">拥塞避免</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Slow-Start"><span class="nav-number">1.0.13.1.</span> <span class="nav-text">Slow Start</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fast-Retransmit-and-Fast-Recovery"><span class="nav-number">1.0.13.2.</span> <span class="nav-text">Fast Retransmit and Fast Recovery</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP-Persist-Timer"><span class="nav-number">1.0.14.</span> <span class="nav-text">TCP Persist Timer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#糊涂窗口症状"><span class="nav-number">1.0.14.1.</span> <span class="nav-text">糊涂窗口症状</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP-Keepalive-Timer"><span class="nav-number">1.0.15.</span> <span class="nav-text">TCP Keepalive Timer</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SmokingMouse</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

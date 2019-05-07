@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="操作系统基本算法调度对于操作系统来讲，何时调度是一个问题。一般来说，分为以下几种情况。1）在创建一个新进程后需要决定运行父进程还是子进程。2）在一个进程退出时做出调度决策。3）当一个进程阻塞在I/O和信号量上或由于其他原因阻塞时，必须选择另一个进程运行。4）在一个I/O中断发生时，必须做出调度决策。如果中断来自I/O设备，而现在设备完成了工作，某些被阻塞的等待该I/O的进程就成为了可运行的就绪进程">
+<meta name="keywords" content="操作系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统基本算法">
+<meta property="og:url" content="http://yoursite.com/2019/04/10/操作系统/2019-04-10-操作系统基本算法/index.html">
+<meta property="og:site_name" content="SmokingMouse">
+<meta property="og:description" content="操作系统基本算法调度对于操作系统来讲，何时调度是一个问题。一般来说，分为以下几种情况。1）在创建一个新进程后需要决定运行父进程还是子进程。2）在一个进程退出时做出调度决策。3）当一个进程阻塞在I/O和信号量上或由于其他原因阻塞时，必须选择另一个进程运行。4）在一个I/O中断发生时，必须做出调度决策。如果中断来自I/O设备，而现在设备完成了工作，某些被阻塞的等待该I/O的进程就成为了可运行的就绪进程">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://camo.githubusercontent.com/bb4936cb708b590b9787dc63b1dc997e7dcf3216/68747470733a2f2f67697465652e636f6d2f437943323031382f43532d4e6f7465732f7261772f6d61737465722f646f63732f706963732f65636638616435642d353430332d343862392d623665372d6632653230666665386663612e706e67">
+<meta property="og:image" content="https://camo.githubusercontent.com/9b5ea5ad5dafc2fea7df2071d1752e10c0bc9d29/68747470733a2f2f67697465652e636f6d2f437943323031382f43532d4e6f7465732f7261772f6d61737465722f646f63732f706963732f35663565663062362d393865612d343937632d613030372d6636633535323838656162312e706e67">
+<meta property="og:updated_time" content="2019-04-10T13:40:47.159Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="操作系统基本算法">
+<meta name="twitter:description" content="操作系统基本算法调度对于操作系统来讲，何时调度是一个问题。一般来说，分为以下几种情况。1）在创建一个新进程后需要决定运行父进程还是子进程。2）在一个进程退出时做出调度决策。3）当一个进程阻塞在I/O和信号量上或由于其他原因阻塞时，必须选择另一个进程运行。4）在一个I/O中断发生时，必须做出调度决策。如果中断来自I/O设备，而现在设备完成了工作，某些被阻塞的等待该I/O的进程就成为了可运行的就绪进程">
+<meta name="twitter:image" content="https://camo.githubusercontent.com/bb4936cb708b590b9787dc63b1dc997e7dcf3216/68747470733a2f2f67697465652e636f6d2f437943323031382f43532d4e6f7465732f7261772f6d61737465722f646f63732f706963732f65636638616435642d353430332d343862392d623665372d6632653230666665386663612e706e67">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/10/操作系统/2019-04-10-操作系统基本算法/">
+
+
+
+
+
+  <title>操作系统基本算法 | SmokingMouse</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmokingMouse</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/10/操作系统/2019-04-10-操作系统基本算法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SmokingMouse">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/images.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmokingMouse">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">操作系统基本算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-10T00:00:00+08:00">
+                2019-04-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="操作系统基本算法"><a href="#操作系统基本算法" class="headerlink" title="操作系统基本算法"></a>操作系统基本算法</h1><h3 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h3><p>对于操作系统来讲，何时调度是一个问题。一般来说，分为以下几种情况。1）在创建一个新进程后需要决定运行父进程还是子进程。2）在一个进程退出时做出调度决策。3）当一个进程阻塞在I/O和信号量上或由于其他原因阻塞时，必须选择另一个进程运行。4）在一个I/O中断发生时，必须做出调度决策。如果中断来自I/O设备，而现在设备完成了工作，某些被阻塞的等待该I/O的进程就成为了可运行的就绪进程了，具体运行哪个进程取决于操作系统对调度的实现。</p>
+<h4 id="调度算法的分类"><a href="#调度算法的分类" class="headerlink" title="调度算法的分类"></a>调度算法的分类</h4><h5 id="批处理"><a href="#批处理" class="headerlink" title="批处理"></a>批处理</h5><p>运行批处理作业的大型计算中心的管理者通常检查三个指标：</p>
+<p>吞吐量、周转时间以及CPU利用率。1）吞吐量是单位时间完成的作业数量。2）周转时间是一个作业完成的平均时间。3）CPU利用率。吞吐量的优秀不代表周转时间优秀。</p>
+<p>常用的批处理调度算法：</p>
+<ul>
+<li>先来先服务(FCFS): 很好理解，最先到的作业，先完成它。后来的排在后面。好处是实现起来比较容易，缺点是可能让其他进程的周转时间过长。</li>
+<li>最短作业优先(SJF): 由于在当前作业完成前，其它的作业都在等待你，因此让完成时间最短的作业先执行可以减少其他作业的等待时间。</li>
+<li>最短剩余时间优先(shortest remaining time next): 相比于SJF，这种算法表现出了抢占性，并且有着更好的周转时间。</li>
+</ul>
+<h5 id="交互式"><a href="#交互式" class="headerlink" title="交互式"></a>交互式</h5><ul>
+<li><p>轮转调度(round robin): 轮转调度为每个进程分配了时间片，允许进程在时间片内运行。如果时间片结束，由计时器发出时钟中断，调度程序便停止进程的执行，并把它送往队尾。</p>
+<p>时间片轮转算法的效率和时间片关系很大：时间片大小，导致进程切换频繁，在进程切换上花费时间巨大。如果时间片过长，实时性就不能得到保证。</p>
+</li>
+<li><p>优先级调度：为每个进程分配一个优先级，按优先级进行调度。为了放置低优先级的进程永远得不到调度，可以随着时间的推移增加等待进程的优先级。</p>
+</li>
+<li><p>多级反馈队列：一个进程需要执行 100 个时间片，如果采用时间片轮转调度算法，那么需要交换 100 次。</p>
+<p>多级队列是为这种需要连续执行多个时间片的进程考虑，它设置了多个队列，每个队列时间片大小都不同，例如 1,2,4,8,..。进程在第一个队列没执行完，就会被移到下一个队列。这种方式下，之前的进程只需要交换 7 次。</p>
+<p>每个队列优先权也不同，最上面的优先权最高。因此只有上一个队列没有进程在排队，才能调度当前队列上的进程。</p>
+<p>可以将这种调度算法看成是时间片轮转调度算法和优先级调度算法的结合。</p>
+</li>
+</ul>
+<h5 id="实时"><a href="#实时" class="headerlink" title="实时"></a>实时</h5><p>实时系统要求一个请求在一个确定时间内得到相应，非为硬实时和软实时，前者必须满足绝对的截至时间，后者可以容忍一定的超时。</p>
+<h3 id="页面置换算法"><a href="#页面置换算法" class="headerlink" title="页面置换算法"></a>页面置换算法</h3><h4 id="最佳置换算法-OPT"><a href="#最佳置换算法-OPT" class="headerlink" title="最佳置换算法(OPT)"></a>最佳置换算法(OPT)</h4><p>所选择的被换出页面是最长时间内不再被访问，通常可以保证获得最低的缺页率。是一种理论上的算法。因为无法知道一个页面多长时间不再被访问。举例：一个系统为某进程分配了三个物理块，并有如下页面引用序列：70120304230321201701.</p>
+<p>开始运行时，先将 7, 0, 1 三个页面装入内存。当进程要访问页面 2 时，产生缺页中断，会将页面 7 换出，因为页面 7 再次被访问的时间最长。</p>
+<h4 id="最近最久未使用-LRU"><a href="#最近最久未使用-LRU" class="headerlink" title="最近最久未使用(LRU)"></a>最近最久未使用(LRU)</h4><p>虽然无法知道将来要使用的页面情况，但是可以知道过去使用页面的情况。LRU 将最近最久未使用的页面换出。</p>
+<p>为了实现 LRU，需要在内存中维护一个所有页面的链表。当一个页面被访问时，将这个页面移到链表表头。这样就能保证链表表尾的页面是最近最久未访问的。</p>
+<p>因为每次访问都需要更新链表，因此这种方式实现的 LRU 代价很高。</p>
+<h4 id="最近未使用-NRU"><a href="#最近未使用-NRU" class="headerlink" title="最近未使用(NRU)"></a>最近未使用(NRU)</h4><p>每个页面都有两个状态位：R 与 M，当页面被访问时设置页面的 R=1，当页面被修改时设置 M=1。其中 R 位会定时被清零。可以将页面分成以下四类：1)R=0，M=0,2)R=0，M=1,3)R=1，M=0，4)R=1，M=1</p>
+<p>当发生缺页中断时，NRU 算法随机地从类编号最小的非空类中挑选一个页面将它换出。</p>
+<p>NRU 优先换出已经被修改的脏页面（R=0，M=1），而不是被频繁使用的干净页面（R=1，M=0）。</p>
+<h4 id="第二次机会算法"><a href="#第二次机会算法" class="headerlink" title="第二次机会算法"></a>第二次机会算法</h4><p>FIFO 算法可能会把经常使用的页面置换出去，为了避免这一问题，对该算法做一个简单的修改：</p>
+<p>当页面被访问 (读或写) 时设置该页面的 R 位为 1。需要替换的时候，检查最老页面的 R 位。如果 R 位是 0，那么这个页面既老又没有被使用，可以立刻置换掉；如果是 1，就将 R 位清 0，并把该页面放到链表的尾端，修改它的装入时间使它就像刚装入的一样，然后继续从链表的头部开始搜索。</p>
+<p><img src="https://camo.githubusercontent.com/bb4936cb708b590b9787dc63b1dc997e7dcf3216/68747470733a2f2f67697465652e636f6d2f437943323031382f43532d4e6f7465732f7261772f6d61737465722f646f63732f706963732f65636638616435642d353430332d343862392d623665372d6632653230666665386663612e706e67" alt="img"></p>
+<h4 id="时钟置换算法"><a href="#时钟置换算法" class="headerlink" title="时钟置换算法"></a>时钟置换算法</h4><p>第二次机会算法需要在链表中移动页面，降低效率。时钟算法使用环形链表将页面链接起来，再使用指针指向最老页面。</p>
+<p><img src="https://camo.githubusercontent.com/9b5ea5ad5dafc2fea7df2071d1752e10c0bc9d29/68747470733a2f2f67697465652e636f6d2f437943323031382f43532d4e6f7465732f7261772f6d61737465722f646f63732f706963732f35663565663062362d393865612d343937632d613030372d6636633535323838656162312e706e67" alt="img"></p>
+<h4 id="工作集页面置换算法"><a href="#工作集页面置换算法" class="headerlink" title="工作集页面置换算法"></a>工作集页面置换算法</h4><p>一个进程当前正在使用的页面的集合叫做<b>工作集</b>。如果工作集都被装入了内存，那么进程在运行到下一阶段前，不会产生很多缺页中断。如果内存太小无法容纳整个工作集，运行过程会发生大量的换入换出，这叫做颠簸。（有点类似于虚拟内存的抖动现象）不少分页系统会跟踪进程的工作集，在进程运行前预先装入工作集页面也成为<b>预先调页</b>。</p>
+<h3 id="磁盘臂调度算法"><a href="#磁盘臂调度算法" class="headerlink" title="磁盘臂调度算法"></a>磁盘臂调度算法</h3><p>读写一个磁盘块的时间影响因素有：</p>
+<ul>
+<li>旋转时间（主轴转动盘面，使得磁头移动到适当的扇区上）</li>
+<li>寻道时间（制动手臂移动，使得磁头移动到适当的磁道上）</li>
+<li>实际的数据传输时间</li>
+</ul>
+<p>其中寻道时间最长，磁盘调度的主要目标是使磁盘的平均寻道时间最短。</p>
+<h4 id="先来先服务（FCFS）"><a href="#先来先服务（FCFS）" class="headerlink" title="先来先服务（FCFS）"></a>先来先服务（FCFS）</h4><p>按照磁盘请求的顺序调度。</p>
+<p>优点是公平和简单。缺点是未对寻道做任何优化，使平均寻道时间较长。</p>
+<h4 id="最短寻道时间优先（SSTF）"><a href="#最短寻道时间优先（SSTF）" class="headerlink" title="最短寻道时间优先（SSTF）"></a>最短寻道时间优先（SSTF）</h4><p>优先调度与当前磁头所在磁道距离最近的磁道。</p>
+<p>虽然平均寻道时间比较低，但是不够公平。如果新到达的磁道请求总是比一个在等待的磁道请求近，那么在等待的磁道请求会一直等待下去，也就是出现饥饿现象。具体来说，两端的磁道请求更容易出现饥饿现象。</p>
+<h4 id="电梯算法（SCAN）"><a href="#电梯算法（SCAN）" class="headerlink" title="电梯算法（SCAN）"></a>电梯算法（SCAN）</h4><p>电梯总是保持一个方向运行，直到该方向没有请求为止，然后改变运行方向。</p>
+<p>电梯算法（扫描算法）和电梯的运行过程类似，总是按一个方向来进行磁盘调度，直到该方向上没有未完成的磁盘请求，然后改变方向。</p>
+<p>因为考虑了移动方向，因此所有的磁盘请求都会被满足，解决了 SSTF 的饥饿问题。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/操作系统/" rel="tag"># 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/09/Unix/2019-04-09-进程终止/" rel="next" title="进程终止">
+                <i class="fa fa-chevron-left"></i> 进程终止
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/10/C++/2019-04-10-C++虚函数/" rel="prev" title="C++对象模型总结">
+                C++对象模型总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/images.jpg" alt="SmokingMouse">
+            
+              <p class="site-author-name" itemprop="name">SmokingMouse</p>
+              <p class="site-description motion-element" itemprop="description">stay hungry, stay foolish</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/SmokingMouse" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/_BigM" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#操作系统基本算法"><span class="nav-number">1.</span> <span class="nav-text">操作系统基本算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#调度"><span class="nav-number">1.0.1.</span> <span class="nav-text">调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#调度算法的分类"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">调度算法的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#批处理"><span class="nav-number">1.0.1.1.1.</span> <span class="nav-text">批处理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#交互式"><span class="nav-number">1.0.1.1.2.</span> <span class="nav-text">交互式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#实时"><span class="nav-number">1.0.1.1.3.</span> <span class="nav-text">实时</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#页面置换算法"><span class="nav-number">1.0.2.</span> <span class="nav-text">页面置换算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#最佳置换算法-OPT"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">最佳置换算法(OPT)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最近最久未使用-LRU"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">最近最久未使用(LRU)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最近未使用-NRU"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">最近未使用(NRU)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二次机会算法"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">第二次机会算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#时钟置换算法"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">时钟置换算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#工作集页面置换算法"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">工作集页面置换算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘臂调度算法"><span class="nav-number">1.0.3.</span> <span class="nav-text">磁盘臂调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#先来先服务（FCFS）"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">先来先服务（FCFS）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最短寻道时间优先（SSTF）"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">最短寻道时间优先（SSTF）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#电梯算法（SCAN）"><span class="nav-number">1.0.3.3.</span> <span class="nav-text">电梯算法（SCAN）</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SmokingMouse</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

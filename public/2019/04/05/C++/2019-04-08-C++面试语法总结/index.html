@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="面试,C++,">
+  <meta name="keywords" content="C++,面试,">
 
 
 
@@ -80,14 +80,14 @@
 
 
 <meta name="description" content="C++面试语法总结static static能够限制全局变量的作用域。在某一cpp文件中，我能通过extern的方式来访问其他cpp文件的全局变量。而static就断绝了这种可能性。  12345678910111213141516/*A.cpp*/int a = 1;extern const int b = 1;	//const在cpp文件中默认是当前文件可见，若需要扩展可见性需要加上exter">
-<meta name="keywords" content="面试,C++">
+<meta name="keywords" content="C++,面试">
 <meta property="og:type" content="article">
 <meta property="og:title" content="C++面试">
-<meta property="og:url" content="http://yoursite.com/2019/04/05/C++面试语法总结/index.html">
+<meta property="og:url" content="http://yoursite.com/2019/04/05/C++/2019-04-08-C++面试语法总结/index.html">
 <meta property="og:site_name" content="SmokingMouse">
 <meta property="og:description" content="C++面试语法总结static static能够限制全局变量的作用域。在某一cpp文件中，我能通过extern的方式来访问其他cpp文件的全局变量。而static就断绝了这种可能性。  12345678910111213141516/*A.cpp*/int a = 1;extern const int b = 1;	//const在cpp文件中默认是当前文件可见，若需要扩展可见性需要加上exter">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-08T03:19:20.775Z">
+<meta property="og:updated_time" content="2019-04-10T08:39:18.066Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="C++面试">
 <meta name="twitter:description" content="C++面试语法总结static static能够限制全局变量的作用域。在某一cpp文件中，我能通过extern的方式来访问其他cpp文件的全局变量。而static就断绝了这种可能性。  12345678910111213141516/*A.cpp*/int a = 1;extern const int b = 1;	//const在cpp文件中默认是当前文件可见，若需要扩展可见性需要加上exter">
@@ -120,7 +120,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/04/05/C++面试语法总结/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/05/C++/2019-04-08-C++面试语法总结/">
 
 
 
@@ -263,7 +263,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/05/C++面试语法总结/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/05/C++/2019-04-08-C++面试语法总结/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="SmokingMouse">
@@ -412,6 +412,7 @@
 </li>
 <li><p>void*的转换</p>
 <p>一些情况下，我们需要将指针转换为void<em>，然后再合适的时候重新将void</em>转换为目标类型指针。</p>
+<p>因为在多重继承里，存在着指针调整的情况，调用<i>dynamic_cast</i>&lt;void*&gt;(ptr)，可以通过查表的方式，确定ptr实际对象的初始地址。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> &#123;</span> <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span></span>&#123;&#125; &#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">     A *pA = <span class="keyword">new</span> A;</span><br><span class="line">     <span class="keyword">void</span> *pV = <span class="keyword">dynamic_cast</span>&lt;<span class="keyword">void</span> *&gt;(pA); </span><br><span class="line">&#125;菱形继承中的上行转换</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>首先，定义一组菱形继承的类：</p>
@@ -511,9 +512,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/面试/" rel="tag"># 面试</a>
-          
             <a href="/tags/C/" rel="tag"># C++</a>
+          
+            <a href="/tags/面试/" rel="tag"># 面试</a>
           
         </div>
       
@@ -532,7 +533,7 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/04/08/IPC/" rel="prev" title="IPC">
+              <a href="/2019/04/08/Unix/2019-04-08-IPC/" rel="prev" title="IPC">
                 IPC <i class="fa fa-chevron-right"></i>
               </a>
             
@@ -616,7 +617,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -627,7 +628,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -638,7 +639,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
