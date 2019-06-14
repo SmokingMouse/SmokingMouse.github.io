@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统,JOS,6.828,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="JOS总结操作系统的启动BIOS机器在启动时，首先运行BIOS，负责初始化中断向量，以及对设备进行检查。随后将boot loader程序加载到0x7c00处，boot loader在磁盘的第一个扇区。 Boot Loader在加载进内存后，跳转到boot loader执行，boot loader主要负责对内核的引导。 在执行boot loader代码时，首先初始化一些寄存器，包括ds，es，ss等">
+<meta name="keywords" content="操作系统,JOS,6.828">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jos实验总结">
+<meta property="og:url" content="http://yoursite.com/2019/06/13/操作系统/2019-06-14-jos/index.html">
+<meta property="og:site_name" content="SmokingMouse">
+<meta property="og:description" content="JOS总结操作系统的启动BIOS机器在启动时，首先运行BIOS，负责初始化中断向量，以及对设备进行检查。随后将boot loader程序加载到0x7c00处，boot loader在磁盘的第一个扇区。 Boot Loader在加载进内存后，跳转到boot loader执行，boot loader主要负责对内核的引导。 在执行boot loader代码时，首先初始化一些寄存器，包括ds，es，ss等">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/mem_layout.png">
+<meta property="og:image" content="http://yoursite.com/images/virtual_addr.png">
+<meta property="og:updated_time" content="2019-06-14T08:03:48.835Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jos实验总结">
+<meta name="twitter:description" content="JOS总结操作系统的启动BIOS机器在启动时，首先运行BIOS，负责初始化中断向量，以及对设备进行检查。随后将boot loader程序加载到0x7c00处，boot loader在磁盘的第一个扇区。 Boot Loader在加载进内存后，跳转到boot loader执行，boot loader主要负责对内核的引导。 在执行boot loader代码时，首先初始化一些寄存器，包括ds，es，ss等">
+<meta name="twitter:image" content="http://yoursite.com/images/mem_layout.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/13/操作系统/2019-06-14-jos/">
+
+
+
+
+
+  <title>Jos实验总结 | SmokingMouse</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmokingMouse</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/操作系统/2019-06-14-jos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SmokingMouse">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/images.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmokingMouse">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Jos实验总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-13T00:00:00+08:00">
+                2019-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="JOS总结"><a href="#JOS总结" class="headerlink" title="JOS总结"></a>JOS总结</h2><h3 id="操作系统的启动"><a href="#操作系统的启动" class="headerlink" title="操作系统的启动"></a>操作系统的启动</h3><h4 id="BIOS"><a href="#BIOS" class="headerlink" title="BIOS"></a>BIOS</h4><p>机器在启动时，首先运行BIOS，负责初始化中断向量，以及对设备进行检查。随后将boot loader程序加载到0x7c00处，boot loader在磁盘的第一个扇区。</p>
+<h4 id="Boot-Loader"><a href="#Boot-Loader" class="headerlink" title="Boot Loader"></a>Boot Loader</h4><p>在加载进内存后，跳转到boot loader执行，boot loader主要负责对内核的引导。</p>
+<p>在执行boot loader代码时，首先初始化一些寄存器，包括ds，es，ss等等，然后设置代码段选择子和数据段选择子，接着调用 lgdt gdtdesc加载全局描述符表，这时cpu还处于<b>实模式</b>状态，只能访问1MB以下的内存，这时boot loader需要开启保护模式以访问高地址内存，调用lcr0 开启<b>保护模式</b>。然后调转到 PROT_MODE_CSEG： protcseg执行。注意这时的PROT_MODE_CSEG为0，也就是说，内核的加载地址即是实际地址。</p>
+<p>protcseg处的代码便是读入内核的ELF文件，将ELF头读入地址0处，根据ELF头，将相应内核段读入相应的地址。在加载完成后，跳转至e_entry执行内核代码。</p>
+<p><b><strong>需要牢记的是，在代码中的地址我们称之为虚拟地址或链接地址，在开启了保护模式后(设置cr0的低位为1)，会经过全局描述符表项来生成线性地址，如果开启了分页(设置cr3的低位为1)，则会将线性地址经过分页转换为物理地址，否则，线性地址就等于物理地址。</strong></b></p>
+<p>此时我们只是开启了<b>保护模式</b>，但是并没有开启分页。所以在内核的开始部分，第一件事就是开启分页，将初始的页目录加载进cr3，这个初始的页目录很简单，单纯的将[KERNBASE，KERNBASE+4MB]映射到[0，4MB]，开启分页后，在访问地址时会经过CPU中MMU的转换，并会对权限进行检测。</p>
+<p>到这里，boot loader工作就全部结束了，剩下的就是把控制权转交给内核，并对其他的操作系统组件进行初始化。</p>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><p>这是我们目前的物理内存分布。</p>
+<p><img src="/images/mem_layout.png" alt="img"></p>
+<p>此时，我们的虚拟内存只是简单的映射了KERNBASE开始的4MB空间，我们需要对内存做更多的管理。</p>
+<p>首先，不管虚拟内存怎样映射，我们首先需要对物理内存做管理，关于物理内存怎样分配，物理内存分配情况的记录等等。</p>
+<p>JOS里面用struct PageInfo来记录物理页的分配情况</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">PageInfo</span>&#123;</span></span><br><span class="line">  	<span class="class"><span class="keyword">struct</span> <span class="title">PageInfo</span>* <span class="title">pp_link</span>;</span></span><br><span class="line">  	<span class="keyword">int</span> pp_ref;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>其中，pp_link记录着上一页可用页面的地址，pp_ref则记录着该物理页面被多少虚拟页映射。通过这个结构便可以很容易的维护物理页信息。分配时将空闲页从链表中剔除，释放时嵌入链表。</p>
+<p>现在我们的虚拟内存表还过于简单，我们需要做更复杂的映射。</p>
+<p><img src="/images/virtual_addr.png" alt="img"></p>
+<p>这是我们虚拟内存的布局，我们需要完成部分的映射。</p>
+<p>首先是[UPAGES，UPAGES+PTSIZE]映射到我们的pages管理部分，也就是一系列PageInfo结构。</p>
+<p>然后是映射[KERNTOP-KSTKSIZE，KSTACKTOP]到[bootstack，bootstack+32KB]处。</p>
+<p>再然后将[KERNBASE，KERNBASE+256MB]映射到[0，256MB处]，这样也覆盖了之前的简单映射部分（向后兼容？）</p>
+<p>映射完后，将cr3寄存器的值换成新的目录表地址。</p>
+<p>（疑问，bootstack具体地址？vupt映射）</p>
+<h3 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h3><p>类似于struct PageInfo记录物理页信息，用Env来记录进程信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Env</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Trapframe</span> <span class="title">env_tf</span>;</span>    <span class="comment">// Saved registers</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Env</span> *<span class="title">env_link</span>;</span>       <span class="comment">// Next free Env</span></span><br><span class="line">    <span class="keyword">envid_t</span> env_id;         <span class="comment">// Unique environment identifier</span></span><br><span class="line">    <span class="keyword">envid_t</span> env_parent_id;      <span class="comment">// env_id of this env's parent</span></span><br><span class="line">    <span class="keyword">enum</span> EnvType env_type;      <span class="comment">// Indicates special system environments</span></span><br><span class="line">    <span class="keyword">unsigned</span> env_status;        <span class="comment">// Status of the environment</span></span><br><span class="line">    <span class="keyword">uint32_t</span> env_runs;      <span class="comment">// Number of times environment has run</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Address space</span></span><br><span class="line">    <span class="keyword">pde_t</span> *env_pgdir;       <span class="comment">// Kernel virtual address of page dir</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>首先需要对PCB表进行内存分配，这个表的大小决定了进程的数目，表里存放的也是Env信息，这些信息都是由内核进行管理，所以访问权限是用户只读。</p>
+<p>之前的gdt表里只有内核数据段和内核代码段（虽然基地址都是0），现在多了用户进程，需要为用户环境段分配相应的gdt描述符。于是多了用户数据段和用户代码段。然后加载新的描述符表。</p>
+<p>（在jos里，段基地址都是0，只是权限不同）</p>
+<p>这些初始化工作完成后，就可以正式创建进程了。</p>
+<p>创建进程调用env_create函数，先调用env_alloc为进程分配Env结构并初始化相应信息，然后为进程创建页表，该页表拷贝kern_dir，将UVPT重新映射到自己的页表。env_tf表示进程运行时的寄存器信息，我们在创建进程时也需要初始化这些信息。初始化完成后，就可以等待调度了，因为运行时的一些必要信息已经准备好了。</p>
+<p>调用env_run()运行进程，下面是env_run()的代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">env_run(struct Env *e)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(curenv &amp;&amp; curenv-&gt;env_status == ENV_RUNNING)</span><br><span class="line">    		curenv-&gt;env_status = ENV_RUNNABLE;</span><br><span class="line">    curenv = e;</span><br><span class="line">    e-&gt;env_status = ENV_RUNNING;</span><br><span class="line">    e-&gt;env_runs++;</span><br><span class="line">    lcr3(PADDR(e-&gt;env_pgdir));</span><br><span class="line">    unlock_kernel();</span><br><span class="line">    env_pop_tf(&amp;e-&gt;env_tf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>env_pop_tf()将进程保存的环境复原，开始运行。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">env_pop_tf(struct Trapframe *tf)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// Record the CPU we are running on for user-space debugging</span></span><br><span class="line">	curenv-&gt;env_cpunum = cpunum();</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">asm</span> <span class="title">volatile</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\tmovl %0,%%esp\n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\tpopal\n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\tpopl %%es\n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\tpopl %%ds\n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\taddl $0x8,%%esp\n"</span> <span class="comment">/* skip tf_trapno and tf_errcode */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="string">"\tiret\n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">		: : <span class="string">"g"</span> (tf) : <span class="string">"memory"</span>)</span></span>;</span><br><span class="line">	panic(<span class="string">"iret failed"</span>);  <span class="comment">/* mostly to placate the compiler */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="关于优先级"><a href="#关于优先级" class="headerlink" title="关于优先级"></a>关于优先级</h4><p>优先级有三种存在方式，分别是CPL、RPL、DPL。CPL是当前的优先级，由当前的cs段的最后三位体现。RPL是请求权限，在用户环境中，RPL和CPL相同。但是因为请求资源切换到内核环境，就会不一样。这是为了防止用户进程在通过内核请求资源时，访问到本不属于它的资源。DPL很好理解，就是某段的访问级别，存在于描述符中。</p>
+<h4 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h4><p>到目前为止，我们都没有一个有效的办法来暂停一个进程，我们需要Unix中类似中断、trap等机制来实现异常的控制流。</p>
+<p>中断和异常都是”保护控制机制”（PCT），它们将处理器从用户模式转移到内核模式。在CSAPP中叫做<b>异常控制流</b>，有4种，分别是中断、陷阱（trap）、异常、终止。其中中断是异步的，随时都可能发生，而其他的则是当前指令引发的。</p>
+<p>trap执行完处理程序后，执行的是下一条指令，异常执行完处理程序后返回的是发生异常的指令。</p>
+<p>中断描述表存储有中断向量和中断门描述符，中断描述表的地址存储在IDT寄存器中。当发生中断时，由IDT找到中断描述表，再根据中断向量作为索引找到中断门描述符，描述符中存有处理程序的选择子和DPL，再由处理程序的选择子在GDT中找到具体处理程序地址。</p>
+<p>x86使用0-31号作为处理器内部的同步异常，像除零异常、缺页异常等。使用32号之上的中断号用于软件中断或硬件中断。</p>
+<p>在中断跳转到中断处理程序前，我们需要保存运行环境，并且这部分不能被用户代码访问到。当遇到异常时，<b>经过中断门后，</b>特权级由用户级变为内核级，这个过程中会将用户栈切换为内核栈，内核栈的位置由<b>TSS</b>来存储，切换到内核栈后，会在内核栈中压入发生中断时的寄存器信息，像esp、ss、cs、eip、eflags等等，(如果中断处理程序需要，可能还要压入些额外信息，比如页异常需要压入error code。)然后将中断处理程序的cs、eip加载进寄存器中，开始运行处理程序。</p>
+<p>（疑问：内核栈中压入的值是什么时候出栈的；内核态转变为用户态的时机）</p>
+<p>内核栈中的值不见得弹出，下次直接被覆盖就好了</p>
+<p>内核态在调用iret后转变为用户态</p>
+<h4 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h4><p>用户特权级下，需要通过系统调用来访问内核资源。系统调用把参数存在通用寄存器里，然后通过int SYS_CALL软中断被中断处理程序处理，并成功进入内核环境。中断处理程序根据保存的寄存器信息提取出系统调用的参数，包括系统调用号，参数等等。并将返回值保存在待恢复寄存器信息中的eax中。</p>
+<h3 id="SMP"><a href="#SMP" class="headerlink" title="SMP"></a>SMP</h3><p>SMP指所有处理器都是平等的，包括内存平等和IO平等。虽然所有处理器都是平等的，但是可以分为BSP和AP，前者用于系统的boot过程以及初始化各个AP，至于哪个cpu是BSP的信息以及其他的关于SMP的配置信息都放在BIOS中。</p>
+<p>每个cpu都有一个LAPIC单元，用于传递和相应中断，LAPIC为与它相连的cpu提供了唯一ID。我们只使用到了LAPIC的部分功能，读取LAPIC判断当前cpu ID；从BSP发送IPI给AP，用于初始化AP；用内置的计时器来支持抢占式多任务。</p>
+<p>cpu访问它的LAPIC通过MMIO，有部分内存连线硬连接到LAPIC。我们将这部分物理地址映射到0xEF800000开始的4MB</p>
+<h4 id="AP启动流程"><a href="#AP启动流程" class="headerlink" title="AP启动流程"></a>AP启动流程</h4><p>在启动AP前，BSP需要从BIOS中读取有关于多处理器的配置信息，比如说cpu的数目，LAPIC的MMIO地址等等。调用boot_aps()来初始化AP，AP以实模式启动，类似于boot过程，区别是我们的BSP可以控制AP执行代码的加载地址。在我们实验里，我们将其加载至0x7000处。</p>
+<p>之后，boot_aps()向各个AP发送STARTUP IPIs来依次激活各个cpu，并为每个cpu指定了内核栈，cpu通过执行0x7000处的初始化代码完成初始化，包括启动保护模式，开启分页，加载gdt等等，并依次调用lapic_init()，env_init_percpu()，trap_init_percpu()完成初始化工作，完成后向BSP发送完成初始化的信号。</p>
+<h4 id="CPU初始化"><a href="#CPU初始化" class="headerlink" title="CPU初始化"></a>CPU初始化</h4><ul>
+<li>内核栈。每个cpu都有一个内核栈，以保证互不干扰。</li>
+<li>TSS和TSS描述符。TSS用于保存内核栈DS、ESP，TSS的段选择子在cpus[i].cpu_ts中，通过段选择子在gdt中可找到TSS。</li>
+<li>当前进程指针。每个cpu都保存着当前运行的进程Env</li>
+<li>所有寄存器。寄存器在每个cpu上都有一份</li>
+</ul>
+<h4 id="内核锁"><a href="#内核锁" class="headerlink" title="内核锁"></a>内核锁</h4><p>为了防止多CPU同时执行内核代码对内核数据产生影戏那个，我们必须保证每次只有一个cpu运行在内核环境。我们采用内核锁的方式，保证最多只有一个CPU处在内核状态。</p>
+<h4 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h4><p>在多CPU环境配置好后，我们需要对进程进行调度，用户进程可以通过系统调用主动让出cpu，在释放进程时会进行调度，在进程调用ipc_recv时也会进行调度，在trap中，发现中断进程已经终止时也会进行调度。</p>
+<h4 id="Fork"><a href="#Fork" class="headerlink" title="Fork"></a>Fork</h4><p>我们现在有了基本的进程模型，还需要类似于Unix中的fork机制来完成更复杂的任务。我们可以先设计一个简单的fork模型，用户通过系统调用进入内核空间，内核通过拷贝进程的内存空间完成复制，并通过将子进程的tf-&gt;eax设置为0达到一次调用、两次返回的效果。</p>
+<p>但是我们可以看到，对于父进程内存空间的复制，进行全部的拷贝，这是一种浪费，因为父子进程内存大部分都是相同的。考虑到这点，我们采用一种叫做<b>写时复制</b>的技术。</p>
+<p>写时复制是说fork后，父子进程共享相同的物理内存，并给相应的虚拟页面写上COW标志，当某一方试图写共享页面时，就会触发页异常，调用相应的异常处理程序，将发生写异常的页面拷贝一份。</p>
+<p>页面异常处理程序和中断过程有点区别，在发生页面异常后，先是触发异常中断，将寄存器值压入内核栈中，而后dispatch发现是页面中断，于是把压入内核栈的数据压入异常栈，并设置用户进程的eip为用户级的处理程序，继而调用env_run转变为用户级并运行页面处理程序，在处理完后，从异常栈中恢复寄存器的数据。也就是说真正的处理过程实际上是在用户环境执行的。</p>
+<h4 id="IPC"><a href="#IPC" class="headerlink" title="IPC"></a>IPC</h4><p>jos的IPC有几种，首先是基于系统调用sys_page_map，将进程A的页面映射到进程B的某页，实现页面的共享。还有一种是ipc_recv和ipc_try_send，ipc_recv系统调用告诉内核，我想收到数据，并且把数据放在哪个地址，然后就重新调度，等待其资源准备好。ipc_try_send系统调用向目标进程发送数据，如果目标进程没准备好收，返回错误信息。否则把数据送到目标进程，并且把目标进程设置为可运行。最后一种是文件系统中即将介绍的pipe，也是基于sys_page_map的原理。</p>
+<h3 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h3><p>文件系统在磁盘上的存储有如下几个部分，超级块、位图、Inode、实际文件内容。其中超级块用于描述文件系统根目录的元信息，位图记录磁盘的分配情况，Inode是描述文件的元信息。但是jos里面没有将Inode和实际文件内容分开，而是将文件的元信息存在所在目录的目录项里。简化了很多。</p>
+<p>jos的文件系统还有一个特别之处在于对于文件的管理是由一个特殊的进程来完成的，关于底层对磁盘的读写不用了解太多（主要是我也不懂），抽象出来就是，这个特殊的文件管理进程可以读出某一磁盘块的内容，它读出的内容映射在它自己的虚拟内存里面，从0x10000000～0xD0000000，正好3G，也就是说jos支持的最大磁盘也就是3G。</p>
+<p>接下来介绍几个关键的数据结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">File</span>&#123;</span></span><br><span class="line">  <span class="keyword">char</span> f_name[MAXNAMELEN];	<span class="comment">// filename</span></span><br><span class="line">	<span class="keyword">off_t</span> f_size;			<span class="comment">// file size in bytes</span></span><br><span class="line">	<span class="keyword">uint32_t</span> f_type;		<span class="comment">// file type</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Block pointers.</span></span><br><span class="line">	<span class="comment">// A block is allocated iff its value is != 0.</span></span><br><span class="line">	<span class="keyword">uint32_t</span> f_direct[NDIRECT];	<span class="comment">// direct blocks</span></span><br><span class="line">	<span class="keyword">uint32_t</span> f_indirect;		<span class="comment">// indirect block</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>File用于记录文件的信息，算是基于磁盘块的一层抽象。通过它可以知道一个文件的基本信息，比如说文件名、大小、具体在哪几个块里。</p>
+<p>我们可以把文件系统找文件的过程分为如下几步：</p>
+<ol>
+<li>从Super块开始，根据目录名和待查询文件名的比对，一层层往下</li>
+<li>找到期待的文件后，保存File信息，通过File就可以很容易读出文件对应的块了</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Fd</span>&#123;</span></span><br><span class="line">  <span class="keyword">int</span> fd_dev_id;</span><br><span class="line">  <span class="keyword">off_t</span> fd_offset;</span><br><span class="line">  <span class="keyword">int</span> fd_omode;</span><br><span class="line">  <span class="keyword">union</span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">FdFile</span> <span class="title">fd_file</span>;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>Fd用于描述打开文件，文件对应的设备ID，当前的偏移量，打开方式，文件id等等。从普通进程的0xD0000000开始，有一段空间用于保存Fd，最多可达32个。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">OpenFile</span>&#123;</span></span><br><span class="line">  <span class="keyword">uint32_t</span> o_fileid;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">File</span>* <span class="title">o_file</span>;</span></span><br><span class="line">  <span class="keyword">int</span> o_mode;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">Fd</span>* <span class="title">o_fd</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>OpenFile将File和Fd联系起来，通过o_fileid可以得到OpenFile数组的下标，这个值保存在Fd的fd_file中。因此，当我们在普通用户程序中通过Fd读文件时，可以通过fd_file在文件管理进程中找到对应的OpenFile结构，然后通过OpenFile里的File结构完成实际文件操作。</p>
+<p>在普通进程和文件管理进程中各有一个fsipc结构，用于传递打开文件的信息。</p>
+<p>我们来看看具体的流程</p>
+<p>打开文件</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"> Regular env           FS env</span><br><span class="line">   +---------------+   +---------------+</span><br><span class="line">   |      open     |   |   file_read   |</span><br><span class="line">   |   (lib/fd.c)  |   |   (fs/fs.c)   |</span><br><span class="line">...|.......|.......|...|.......^.......|...............</span><br><span class="line">   |       |       |   |       |       | RPC mechanism</span><br><span class="line">   |       |       |   |  serve_open   |</span><br><span class="line">   |       |       |   |  (fs/serv.c)  |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   |       v       |   |       |       |</span><br><span class="line">   |     fsipc     |   |     serve     |</span><br><span class="line">   |  (lib/file.c) |   |  (fs/serv.c)  |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   |       v       |   |       |       |</span><br><span class="line">   |   ipc_send    |   |   ipc_recv    |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   +-------|-------+   +-------|-------+</span><br><span class="line">           |                   |</span><br><span class="line">           +-------------------+</span><br></pre></td></tr></table></figure>
+<p>读取文件</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"> Regular env           FS env</span><br><span class="line">   +---------------+   +---------------+</span><br><span class="line">   |      read     |   |   file_read   |</span><br><span class="line">   |   (lib/fd.c)  |   |   (fs/fs.c)   |</span><br><span class="line">...|.......|.......|...|.......^.......|...............</span><br><span class="line">   |       v       |   |       |       | RPC mechanism</span><br><span class="line">   |  devfile_read |   |  serve_read   |</span><br><span class="line">   |  (lib/file.c) |   |  (fs/serv.c)  |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   |       v       |   |       |       |</span><br><span class="line">   |     fsipc     |   |     serve     |</span><br><span class="line">   |  (lib/file.c) |   |  (fs/serv.c)  |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   |       v       |   |       |       |</span><br><span class="line">   |   ipc_send    |   |   ipc_recv    |</span><br><span class="line">   |       |       |   |       ^       |</span><br><span class="line">   +-------|-------+   +-------|-------+</span><br><span class="line">           |                   |</span><br><span class="line">           +-------------------+</span><br></pre></td></tr></table></figure>
+<p>可以看到的是，用户通过调用read，执行实际操作的是对应的设备文件，因为不同类型的文件对用户而言都是相同的（Fd），但是实际read却有区别。比如对管道文件的读和对普通文件的读肯定不一样。这种区别由不同的设备文件来体现。devfile_read把请求读取的文件的信息保存在fsipc中，通过ipc向Fs serv请求数据，fs serv一直在等待请求到来，在读到请求后，根据请求返还对应的文件内容，通过ipc的方式写回。</p>
+<h4 id="Spawning进程"><a href="#Spawning进程" class="headerlink" title="Spawning进程"></a>Spawning进程</h4><p>spawning用于创建子进程，有点类似于Unix中的fork+exec过程，但是有点区别，因为我们的spawning过程运行在用户空间。</p>
+<p>在fork和spawning中，父子进程需要共享文件描述符，之前的COW字段并不能满足要求，我们需要的是共享。</p>
+<p>Spawning的流程如下：</p>
+<ol>
+<li>打开文件，获取文件描述符Fd</li>
+<li>读取ELF文件</li>
+<li>调用fork创建子进程</li>
+<li>设置child_tf，设置子进程eip为elf文件的入口点e_entry，设置esp为init_stack分配的栈空间</li>
+<li>将ELF文件映射到子进程地址空间，并根据ELF来设置访问权限</li>
+<li>拷贝共享的页</li>
+<li>调用sys_env_set_trapframe()设置子进程的env_tf位child_tf。</li>
+<li>调用 sys_env_set_status() 设置子进程为RUNNABLE状态。</li>
+</ol>
+<h4 id="pipe"><a href="#pipe" class="headerlink" title="pipe"></a>pipe</h4><p>pipe过程很简单，分配两个描述符，每个描述符会携带对应的数据区，将两个描述符的数据区映射到同一段物理内存，该段内存保存有r_offset、w_offset以及实际数据。也就是说pipe虽然和文件相关，但是并不涉及到实际的文件。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/操作系统/" rel="tag"># 操作系统</a>
+          
+            <a href="/tags/JOS/" rel="tag"># JOS</a>
+          
+            <a href="/tags/6-828/" rel="tag"># 6.828</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/18/Unix/2019-04-08-Signal/" rel="next" title="Unix信号">
+                <i class="fa fa-chevron-left"></i> Unix信号
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/images.jpg" alt="SmokingMouse">
+            
+              <p class="site-author-name" itemprop="name">SmokingMouse</p>
+              <p class="site-description motion-element" itemprop="description">stay hungry, stay foolish</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/SmokingMouse" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/_BigM" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JOS总结"><span class="nav-number">1.</span> <span class="nav-text">JOS总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作系统的启动"><span class="nav-number">1.1.</span> <span class="nav-text">操作系统的启动</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BIOS"><span class="nav-number">1.1.1.</span> <span class="nav-text">BIOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Boot-Loader"><span class="nav-number">1.1.2.</span> <span class="nav-text">Boot Loader</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存管理"><span class="nav-number">1.2.</span> <span class="nav-text">内存管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程管理"><span class="nav-number">1.3.</span> <span class="nav-text">进程管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#关于优先级"><span class="nav-number">1.3.1.</span> <span class="nav-text">关于优先级</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断"><span class="nav-number">1.3.2.</span> <span class="nav-text">中断</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#系统调用"><span class="nav-number">1.3.3.</span> <span class="nav-text">系统调用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SMP"><span class="nav-number">1.4.</span> <span class="nav-text">SMP</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AP启动流程"><span class="nav-number">1.4.1.</span> <span class="nav-text">AP启动流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU初始化"><span class="nav-number">1.4.2.</span> <span class="nav-text">CPU初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核锁"><span class="nav-number">1.4.3.</span> <span class="nav-text">内核锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调度"><span class="nav-number">1.4.4.</span> <span class="nav-text">调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fork"><span class="nav-number">1.4.5.</span> <span class="nav-text">Fork</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPC"><span class="nav-number">1.4.6.</span> <span class="nav-text">IPC</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件系统"><span class="nav-number">1.5.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Spawning进程"><span class="nav-number">1.5.1.</span> <span class="nav-text">Spawning进程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pipe"><span class="nav-number">1.5.2.</span> <span class="nav-text">pipe</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SmokingMouse</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

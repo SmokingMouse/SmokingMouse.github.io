@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Unix,进程,信号,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="进程退出1. 正常方式 从main返回 调用exit 调用_exit或_Exit 最后一个线程从其启动例程返回 最后一个线程调用pthread_exit  2. 异常终止 调用abort 接到一个信号 最后一个线程对取消请求作出相应(待补充)  3. 正常结束的善后内容​    我们先来看看exit和_exit与_Exit区别，首先exit和_Exit是ISO定义的函数，定义在&amp;lt;stdlib">
+<meta name="keywords" content="Unix,进程,信号">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程终止">
+<meta property="og:url" content="http://yoursite.com/2019/04/09/Unix/2019-04-09-进程终止/index.html">
+<meta property="og:site_name" content="SmokingMouse">
+<meta property="og:description" content="进程退出1. 正常方式 从main返回 调用exit 调用_exit或_Exit 最后一个线程从其启动例程返回 最后一个线程调用pthread_exit  2. 异常终止 调用abort 接到一个信号 最后一个线程对取消请求作出相应(待补充)  3. 正常结束的善后内容​    我们先来看看exit和_exit与_Exit区别，首先exit和_Exit是ISO定义的函数，定义在&amp;lt;stdlib">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-05-17T16:39:46.371Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="进程终止">
+<meta name="twitter:description" content="进程退出1. 正常方式 从main返回 调用exit 调用_exit或_Exit 最后一个线程从其启动例程返回 最后一个线程调用pthread_exit  2. 异常终止 调用abort 接到一个信号 最后一个线程对取消请求作出相应(待补充)  3. 正常结束的善后内容​    我们先来看看exit和_exit与_Exit区别，首先exit和_Exit是ISO定义的函数，定义在&amp;lt;stdlib">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/09/Unix/2019-04-09-进程终止/">
+
+
+
+
+
+  <title>进程终止 | SmokingMouse</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmokingMouse</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/09/Unix/2019-04-09-进程终止/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SmokingMouse">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/images.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmokingMouse">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">进程终止</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-09T00:00:00+08:00">
+                2019-04-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unix/" itemprop="url" rel="index">
+                    <span itemprop="name">Unix</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="进程退出"><a href="#进程退出" class="headerlink" title="进程退出"></a>进程退出</h1><h3 id="1-正常方式"><a href="#1-正常方式" class="headerlink" title="1. 正常方式"></a>1. 正常方式</h3><ul>
+<li>从main返回</li>
+<li>调用exit</li>
+<li>调用_exit或_Exit</li>
+<li>最后一个线程从其启动例程返回</li>
+<li>最后一个线程调用<i>pthread_exit</i></li>
+</ul>
+<h3 id="2-异常终止"><a href="#2-异常终止" class="headerlink" title="2. 异常终止"></a>2. 异常终止</h3><ul>
+<li>调用abort</li>
+<li>接到一个信号</li>
+<li>最后一个线程对取消请求作出相应(待补充)</li>
+</ul>
+<h3 id="3-正常结束的善后内容"><a href="#3-正常结束的善后内容" class="headerlink" title="3. 正常结束的善后内容"></a>3. 正常结束的善后内容</h3><p>​    我们先来看看exit和_exit与_Exit区别，首先exit和_Exit是ISO定义的函数，定义在&lt;stdlib.h&gt;头文件中，而_exit则是基于POSIX标准，属于系统调用，定义在&lt;unistd.h&gt;头文件中。这三个函数的参数都带一个整型参数，表示进程的退出状态。如果a) 调用这些函数时不带参数，或b) main执行了一个无返回值的return语句，或c)main没有声明返回类型为整型，则返回状态是未定义的。但是若main的返回类型是整形，并且main执行到最后一条语句时返回，那么进程的终止状态是0。<b>exit(0)表示正常退出，其他情况都表示异常退出。</b></p>
+<p>​    _exit其实是exit调用过程的一个子集，首先exit退出进程前，会进行一系列的善后工作，包括1) 调用通过<i>atexit</i>或on_exit注册的退出处理函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">atexit</span><span class="params">(<span class="keyword">void</span> (*func)(<span class="keyword">void</span>))</span></span>;</span><br><span class="line">		<span class="comment">//返回值：若成功，返回0；若出错，返回非0</span></span><br></pre></td></tr></table></figure>
+<p>​    2) 冲刷并关闭所有处于打开状态的标准I/O流。</p>
+<p>​    3) 删除所有通过<i>tempfile</i>创建的临时文件。</p>
+<p>​    在这些事情完成后，调用_exit来做更深层次的清理，包括1) 关闭所有仍处于打开状态的文件描述符。2)将调用进程的子进程托付给<i>init</i>进程。3)向调用进程的父进程发送<i>SIGCHLD</i>信号。</p>
+<h3 id="4-异常终止的讨论"><a href="#4-异常终止的讨论" class="headerlink" title="4. 异常终止的讨论"></a>4. 异常终止的讨论</h3><p>​    说完了正常终止的方式，我们来看看进程的异常终止。</p>
+<p>​    在很多时候，异常终止的原因都是因为信号的默认处理方式。默认的信号处理程序会根据具体信号涵义采取不同处理方式：</p>
+<ul>
+<li>终止进程运行，并且产生core dump文件。</li>
+<li>终止进程运行。</li>
+<li>忽略信号，进程继续执行。</li>
+<li>暂停进程执行。</li>
+<li>如果进程已经暂停，重新调度进程继续运行。</li>
+</ul>
+<p>前两种便是我们所说的因为信号而产生的异常终止，但这很多时候并不是程序本身的问题。实际上是存在因为程序本身的问题导致异常终止的情况。</p>
+<p>假设在访问内存时发生了非法访问的情况， 就会出发内存保护异常，并跳转到异常处理程序，终止进程运行。异常处理函数在实现上，是通过向挂起的进程发送信号，进而通过信号的默认处理程序来终止进程运行，在这信号发生前内核可能会试着修复，在发现无法挽回后，进程的死活便取决于信号的默认处理函数了。所以这种情况下的实际终止原因还是信号的处理。</p>
+<p>关于调用<i>abort</i>异常终止也是通过给进程发送信号的原理，具体的<i>abort</i>源码可以了解下。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Unix/" rel="tag"># Unix</a>
+          
+            <a href="/tags/进程/" rel="tag"># 进程</a>
+          
+            <a href="/tags/信号/" rel="tag"># 信号</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/10/操作系统/2019-04-10-操作系统基本算法/" rel="prev" title="操作系统基本算法">
+                操作系统基本算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/images.jpg" alt="SmokingMouse">
+            
+              <p class="site-author-name" itemprop="name">SmokingMouse</p>
+              <p class="site-description motion-element" itemprop="description">stay hungry, stay foolish</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/SmokingMouse" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/_BigM" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程退出"><span class="nav-number">1.</span> <span class="nav-text">进程退出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-正常方式"><span class="nav-number">1.0.1.</span> <span class="nav-text">1. 正常方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-异常终止"><span class="nav-number">1.0.2.</span> <span class="nav-text">2. 异常终止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-正常结束的善后内容"><span class="nav-number">1.0.3.</span> <span class="nav-text">3. 正常结束的善后内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-异常终止的讨论"><span class="nav-number">1.0.4.</span> <span class="nav-text">4. 异常终止的讨论</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SmokingMouse</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
